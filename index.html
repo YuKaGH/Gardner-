@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Игра: 4 стакана (для встраивания в Genially)</title>
+<style>
+  :root{
+    --size: 420px;
+    --cup-size: 86px;
+    --bg: #f6f7fb;
+    --table: #d9b172;
+    --cup-color: #6b4f2b;
+    --cup-inside: #fff9f0;
+  }
+  body{ font-family: Inter, system-ui, Arial; margin: 18px; background: var(--bg); color:#222; }
+  h1{ font-size:18px; margin:0 0 10px 0; }
+  .wrap{ display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; }
+  .game{
+    width:var(--size);
+  }
+  .board{
+    width:var(--size); height:var(--size); position:relative; border-radius:12px;
+    background: linear-gradient(180deg, #f0e6d9, #e6d5b8);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12) inset;
+    overflow: visible;
+    margin-bottom:8px;
+    transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+  }
+  .table{
+    width:320px; height:320px; background:var(--table); border-radius:10px;
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+    display:block; transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+  }
+  .corner{
+    width:var(--cup-size); height:var(--cup-size); position:absolute; display:flex; justify-content:center; align-items:center;
+    cursor:pointer;
+    user-select:none;
+  }
+  .corner.disabled{ cursor:not-allowed; opacity:0.6; }
+  /* corners positions relative to table */
+  .c0{ left:8px; top:8px; }
+  .c1{ right:8px; top:8px; }
+  .c2{ left:8px; bottom:8px; }
+  .c3{ right:8px; bottom:8px; }
+
+  .cup {
+    width:72px; height:72px; border-radius:12px; background:var(--cup-color); box-shadow:0 6px 10px rgba(0,0,0,0.18);
+    display:flex; align-items:center; justify-content:center; transform-origin:center;
+    transition: transform 300ms ease, filter 200ms;
+    color:var(--cup-inside);
+    font-weight:700;
+    font-size:14px;
+  }
+  /* orientation classes: up or down (visual) */
+  .up{ transform: rotateX(0deg); }
+  .down{ transform: rotateX(180deg); }
+
+  /* when hidden by blindfold, cups show neutral silhouette */
+  .hidden .cup{ background:linear-gradient(180deg,#5c4730,#2f2416); filter:grayscale(60%); transform: none; }
+
+  .selected{ outline:3px solid rgba(255,255,0,0.9); border-radius:14px; transform:scale(1.05); }
+
+  .controls{ margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  button{ padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background:white; cursor:pointer; }
+  button.primary{ background:#3b82f6; color:white; border:none; }
+  .info{ font-size:13px; color:#333; margin:6px 0; }
+  .status{ margin-top:6px; font-size:13px; color:#444; }
+
+  .panel{ max-width:360px; font-size:14px; background:white; border-radius:10px; padding:12px; box-shadow:0 8px 20px rgba(0,0,0,0.06); }
+  .muted{ color:#666; font-size:13px; }
+
+  .overlay{
+    position:absolute; left:0; top:0; right:0; bottom:0; border-radius:12px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.38), rgba(0,0,0,0.48));
+    display:flex; align-items:center; justify-content:center; color:white; font-weight:700;
+    z-index:40; pointer-events:none;
+  }
+  .modal{
+    position: absolute; left:50%; top:50%; transform:translate(-50%,-50%); background: rgba(255,255,255,0.98); padding:12px; border-radius:10px; box-shadow:0 14px 36px rgba(0,0,0,0.28);
+    z-index:60; min-width:280px;
+  }
+  .row{ display:flex; gap:10px; align-items:center; justify-content:center; margin:10px 0; }
+  .btn-ghost{ background:#f3f4f6; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
+  .win{ font-size:18px; color:#0b6623; font-weight:800; }
+  .small{ font-size:13px; color:#333; }
+  .footer { margin-top:10px; font-size:13px; color:#555; }
+</style>
+</head>
+<body>
+<h1>Игра: 4 стакана (готово к встраиванию)</h1>
+<div class="wrap">
+  <div class="game">
+    <div id="board" class="board" aria-live="polite">
+      <div id="table" class="table" role="img" aria-label="крутящийся стол">
+        <!-- corners -->
+        <div id="pos0" class="corner c0" data-index="0" tabindex="0" aria-label="Стакан 1">
+          <div class="cup" id="cup0">U</div>
+        </div>
+        <div id="pos1" class="corner c1" data-index="1" tabindex="0" aria-label="Стакан 2">
+          <div class="cup" id="cup1">U</div>
+        </div>
+        <div id="pos2" class="corner c2" data-index="2" tabindex="0" aria-label="Стакан 3">
+          <div class="cup" id="cup2">U</div>
+        </div>
+        <div id="pos3" class="corner c3" data-index="3" tabindex="0" aria-label="Стакан 4">
+          <div class="cup" id="cup3">U</div>
+        </div>
+      </div>
+
+      <div id="blindOverlay" class="overlay" style="display:flex; pointer-events:none;">Завязаны глаза — выберите 2 стакана</div>
+    </div>
+
+    <div class="controls">
+      <button id="restartBtn" class="btn-ghost">Новая игра</button>
+      <button id="showAllBtn">Показать все (открыть)</button>
+      <div style="margin-left:auto" class="muted">Ходов: <span id="moves">0</span></div>
+    </div>
+
+    <div class="status" id="status">Выберите два стакана.</div>
+  </div>
+
+  <div class="panel">
+    <div><strong>Правила</strong></div>
+    <div class="muted" style="margin-top:6px;">
+      В каждом ходе вы выбираете ровно два стакана и "чуствуете" их ориентацию. После этого можно перевернуть ни одного, любой или оба из них.
+      Затем столик поворачивается на случайный угол. Цель — сделать все стаканы в одном положении.
+    </div>
+
+    <div class="footer">
+      Подсказка: игра рассчитана под встраивание в Genially как iframe. Если нужно — помогу подготовить хостинг и вставку.
+    </div>
+  </div>
+</div>
+
+<!-- modal for revealing selected pair -->
+<div id="modal" style="display:none;" class="modal" role="dialog" aria-modal="true">
+  <div id="modalTitle" class="small">Вы проверили стаканы</div>
+  <div class="row" id="revealRow">
+    <div style="text-align:center">
+      <div id="revealA" style="width:100px; height:80px; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.12);"></div>
+      <div class="small">Стакан A</div>
+    </div>
+    <div style="text-align:center">
+      <div id="revealB" style="width:100px; height:80px; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.12);"></div>
+      <div class="small">Стакан B</div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:8px; justify-content:center; margin-top:8px;">
+    <button id="flipNone" class="btn-ghost">Не переворачивать</button>
+    <button id="flipA" class="btn-ghost">Перевернуть A</button>
+    <button id="flipB" class="btn-ghost">Перевернуть B</button>
+    <button id="flipBoth" class="primary">Перевернуть оба</button>
+  </div>
+
+  <div style="text-align:center; margin-top:8px;">
+    <button id="closeModal" class="btn-ghost">Отменить / Закрыть</button>
+  </div>
+</div>
+
+<script>
+/*
+  Простая реализация логики игры.
+  Состояние: массив cups[0..3] = true (up) / false (down)
+  UI:
+    - скрыт режим "blindfold": пользователю видна только информация по выбранным стаканам
+    - после хода столик анимированно вращается на случайный угол
+*/
+
+(function(){
+  const cups = [true,true,true,true]; // true = up, false = down
+  const cupEls = [document.getElementById('cup0'),document.getElementById('cup1'),document.getElementById('cup2'),document.getElementById('cup3')];
+  const posEls = [document.getElementById('pos0'),document.getElementById('pos1'),document.getElementById('pos2'),document.getElementById('pos3')];
+  const table = document.getElementById('table');
+  const overlay = document.getElementById('blindOverlay');
+  const status = document.getElementById('status');
+  const movesEl = document.getElementById('moves');
+  const modal = document.getElementById('modal');
+  const revealA = document.getElementById('revealA');
+  const revealB = document.getElementById('revealB');
+  const showAllBtn = document.getElementById('showAllBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const closeModal = document.getElementById('closeModal');
+  const flipAbtn = document.getElementById('flipA');
+  const flipBbtn = document.getElementById('flipB');
+  const flipBothBtn = document.getElementById('flipBoth');
+  const flipNoneBtn = document.getElementById('flipNone');
+
+  let selected = []; // выбранные индексы (макс 2)
+  let moves = 0;
+  let blind = true;
+  let rotating = false;
+
+  function randBool(){ return Math.random() < 0.5; }
+
+  function newGame(){
+    for(let i=0;i<4;i++) cups[i] = randBool();
+    moves = 0; movesEl.textContent = moves;
+    selected = [];
+    blind = true;
+    setOverlayVisible(true);
+    updateCups();
+    status.textContent = 'Выберите два стакана.';
+    modal.style.display = 'none';
+    // reset table rotation
+    table.style.transform = 'rotate(0deg)';
+    rotating = false;
+  }
+
+  function updateCups(){
+    // If blind mode, show neutral look for all; reveal selected only in actual reveal phase via modal.
+    for(let i=0;i<4;i++){
+      const up = cups[i];
+      const el = cupEls[i];
+      el.textContent = up ? '↑' : '↓';
+      el.classList.toggle('up', up);
+      el.classList.toggle('down', !up);
+      // keep neutral if blind and not selected
+      if(blind){
+        posEls[i].classList.add('hidden');
+      } else {
+        posEls[i].classList.remove('hidden');
+      }
+      posEls[i].classList.toggle('selected', selected.includes(i));
+      posEls[i].classList.toggle('disabled', rotating);
+    }
+  }
+
+  function setOverlayVisible(v){
+    overlay.style.display = v ? 'flex' : 'none';
+  }
+
+  function playBell(){
+    // Simple bell using WebAudio
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(880, ctx.currentTime);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + 0.02);
+      o.connect(g); g.connect(ctx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+      o.stop(ctx.currentTime + 1.25);
+    }catch(e){
+      console.log('Audio fail', e);
+    }
+  }
+
+  function checkWin(){
+    const same = cups.every(v => v === cups[0]);
+    if(same){
+      playBell();
+      status.innerHTML = '<span class="win">Победа! Все стаканы в одном положении.</span> Ходов: '+moves;
+      setOverlayVisible(false);
+      blind = false;
+      updateCups();
+      return true;
+    }
+    return false;
+  }
+
+  // click handlers for positions
+  posEls.forEach((posEl, idx) => {
+    function trySelect(){
+      if(rotating) return;
+      if(selected.includes(idx)){
+        // deselect
+        selected = selected.filter(x=>x!==idx);
+      } else {
+        if(selected.length >= 2) {
+          // replace oldest? simpler: ignore new until deselect
+          return;
+        }
+        selected.push(idx);
+      }
+      updateCups();
+      if(selected.length === 2){
+        // reveal modal with their states
+        showRevealModal(selected[0], selected[1]);
+      }
+    }
+    posEl.addEventListener('click', trySelect);
+    posEl.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trySelect(); }
+    });
+  });
+
+  function showRevealModal(a,b){
+    // reveal A and B states in modal and present options to flip
+    modal.style.display = 'block';
+    revealA.textContent = cups[a] ? '↑ (вверх)' : '↓ (вниз)';
+    revealB.textContent = cups[b] ? '↑ (вверх)' : '↓ (вниз)';
+    // pause interactions with board
+    setOverlayVisible(false);
+    blind = true; // board remains visually hidden, modal is visible
+    status.textContent = 'Вы проверили два стакана — выберите действие.';
+    updateCups();
+  }
+
+  function closeReveal(){
+    modal.style.display = 'none';
+    setOverlayVisible(true);
+    selected = [];
+    updateCups();
+  }
+
+  flipNoneBtn.addEventListener('click', function(){
+    applyMove(false,false);
+  });
+  flipAbtn.addEventListener('click', function(){
+    applyMove(true,false);
+  });
+  flipBbtn.addEventListener('click', function(){
+    applyMove(false,true);
+  });
+  flipBothBtn.addEventListener('click', function(){
+    applyMove(true,true);
+  });
+  closeModal.addEventListener('click', function(){
+    closeReveal();
+  });
+
+  function applyMove(flipA, flipB){
+    if(selected.length !== 2) return;
+    const [a,b] = selected;
+    if(flipA) cups[a] = !cups[a];
+    if(flipB) cups[b] = !cups[b];
+    moves++; movesEl.textContent = moves;
+    modal.style.display = 'none';
+    // animate rotation
+    rotating = true;
+    setOverlayVisible(false);
+    // update right away (to keep internal states)
+    blind = true; // still blind between moves
+    updateCups();
+    // compute random angle
+    const angle = Math.floor(Math.random()*360);
+    table.style.transition = 'transform 900ms cubic-bezier(.2,.9,.2,1)';
+    table.style.transform = 'rotate('+angle+'deg)';
+    // after animation ends:
+    setTimeout(() => {
+      rotating = false;
+      setOverlayVisible(true);
+      selected = [];
+      // After rotation, keep cups hidden (blind) unless win
+      const won = checkWin();
+      if(!won){
+        status.textContent = 'Выберите два стакана.';
+        blind = true;
+      } else {
+        blind = false;
+      }
+      updateCups();
+    }, 950);
+  }
+
+  // show all (toggle)
+  showAllBtn.addEventListener('click', function(){
+    blind = !blind;
+    setOverlayVisible(blind);
+    showAllBtn.textContent = blind ? 'Показать все (открыть)' : 'Спрятать (завязать)';
+    updateCups();
+  });
+
+  restartBtn.addEventListener('click', function(){
+    newGame();
+  });
+
+  // init
+  newGame();
+
+  // Expose some debug to window
+  window._cupsGame = {
+    state: cups,
+    newGame,
+    applyMove
+  };
+})();
+</script>
+</body>
+</html>
