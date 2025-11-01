@@ -54,7 +54,7 @@
             box-shadow: 
                 0 15px 35px rgba(0,0,0,0.5),
                 inset 0 -5px 15px rgba(0,0,0,0.3);
-            transition: transform 1s cubic-bezier(0.1, 0.8, 0.2, 1); /* Ускоренная анимация */
+            transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1);
             border: 8px solid #5D4037;
         }
         
@@ -336,7 +336,6 @@
             let gameActive = true;
             let arrowStates = [true, false, true, false]; // true - вверх, false - вниз
             let isRotating = false;
-            let currentRotation = 0;
 
             // Инициализация игры
             function initGame() {
@@ -363,7 +362,6 @@
                 moves = 0;
                 gameActive = true;
                 isRotating = false;
-                currentRotation = 0;
                 movesCounter.textContent = moves;
                 updateStatus();
                 
@@ -486,11 +484,20 @@
                 moves++;
                 movesCounter.textContent = moves;
                 
+                // Проверяем победу
+                if (checkWin()) {
+                    setTimeout(() => {
+                        endGame("🎉 Поздравляем! Вы выиграли! 🎉", "#27ae60");
+                        bellSound.play();
+                    }, 2100);
+                }
+                
                 // Поворачиваем стол на 900° + случайный угол из набора (0, 90, 180, 270)
                 const angles = [0, 90, 180, 270];
                 const randomAngle = angles[Math.floor(Math.random() * angles.length)];
-                const totalRotation = currentRotation + 900 + randomAngle;
-                currentRotation = totalRotation % 360; // Нормализуем угол
+                const totalRotation = 900 + randomAngle;
+                
+                console.log(`Поворот стола на: ${totalRotation}° (900° + ${randomAngle}°)`);
                 
                 table.style.transform = `rotate(${totalRotation}deg)`;
                 
@@ -502,13 +509,6 @@
                     
                     if (!gameActive) return;
                     
-                    // Проверяем победу после вращения
-                    if (checkWin()) {
-                        endGame("🎉 Поздравляем! Вы выиграли! 🎉", "#27ae60");
-                        bellSound.play();
-                        return;
-                    }
-                    
                     // Сбрасываем выбор
                     selectedArrows = [];
                     forwardBtn.disabled = true;
@@ -516,7 +516,7 @@
                     updateStatus();
                     
                     status.textContent = "🎪 Откройте две стрелки, чтобы продолжить игру!";
-                }, 1000); // Уменьшено время ожидания
+                }, 2100);
             }
             
             // Обработчик кнопки "Дальше"
