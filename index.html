@@ -1,386 +1,568 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Игра: 4 стакана (для встраивания в Genially)</title>
-<style>
-  :root{
-    --size: 420px;
-    --cup-size: 86px;
-    --bg: #f6f7fb;
-    --table: #d9b172;
-    --cup-color: #6b4f2b;
-    --cup-inside: #fff9f0;
-  }
-  body{ font-family: Inter, system-ui, Arial; margin: 18px; background: var(--bg); color:#222; }
-  h1{ font-size:18px; margin:0 0 10px 0; }
-  .wrap{ display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; }
-  .game{
-    width:var(--size);
-  }
-  .board{
-    width:var(--size); height:var(--size); position:relative; border-radius:12px;
-    background: linear-gradient(180deg, #f0e6d9, #e6d5b8);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12) inset;
-    overflow: visible;
-    margin-bottom:8px;
-    transition: transform 900ms cubic-bezier(.2,.9,.2,1);
-  }
-  .table{
-    width:320px; height:320px; background:var(--table); border-radius:10px;
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.16);
-    display:block; transition: transform 900ms cubic-bezier(.2,.9,.2,1);
-  }
-  .corner{
-    width:var(--cup-size); height:var(--cup-size); position:absolute; display:flex; justify-content:center; align-items:center;
-    cursor:pointer;
-    user-select:none;
-  }
-  .corner.disabled{ cursor:not-allowed; opacity:0.6; }
-  /* corners positions relative to table */
-  .c0{ left:8px; top:8px; }
-  .c1{ right:8px; top:8px; }
-  .c2{ left:8px; bottom:8px; }
-  .c3{ right:8px; bottom:8px; }
-
-  .cup {
-    width:72px; height:72px; border-radius:12px; background:var(--cup-color); box-shadow:0 6px 10px rgba(0,0,0,0.18);
-    display:flex; align-items:center; justify-content:center; transform-origin:center;
-    transition: transform 300ms ease, filter 200ms;
-    color:var(--cup-inside);
-    font-weight:700;
-    font-size:14px;
-  }
-  /* orientation classes: up or down (visual) */
-  .up{ transform: rotateX(0deg); }
-  .down{ transform: rotateX(180deg); }
-
-  /* when hidden by blindfold, cups show neutral silhouette */
-  .hidden .cup{ background:linear-gradient(180deg,#5c4730,#2f2416); filter:grayscale(60%); transform: none; }
-
-  .selected{ outline:3px solid rgba(255,255,0,0.9); border-radius:14px; transform:scale(1.05); }
-
-  .controls{ margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  button{ padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background:white; cursor:pointer; }
-  button.primary{ background:#3b82f6; color:white; border:none; }
-  .info{ font-size:13px; color:#333; margin:6px 0; }
-  .status{ margin-top:6px; font-size:13px; color:#444; }
-
-  .panel{ max-width:360px; font-size:14px; background:white; border-radius:10px; padding:12px; box-shadow:0 8px 20px rgba(0,0,0,0.06); }
-  .muted{ color:#666; font-size:13px; }
-
-  .overlay{
-    position:absolute; left:0; top:0; right:0; bottom:0; border-radius:12px;
-    background: linear-gradient(180deg, rgba(0,0,0,0.38), rgba(0,0,0,0.48));
-    display:flex; align-items:center; justify-content:center; color:white; font-weight:700;
-    z-index:40; pointer-events:none;
-  }
-  .modal{
-    position: absolute; left:50%; top:50%; transform:translate(-50%,-50%); background: rgba(255,255,255,0.98); padding:12px; border-radius:10px; box-shadow:0 14px 36px rgba(0,0,0,0.28);
-    z-index:60; min-width:280px;
-  }
-  .row{ display:flex; gap:10px; align-items:center; justify-content:center; margin:10px 0; }
-  .btn-ghost{ background:#f3f4f6; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
-  .win{ font-size:18px; color:#0b6623; font-weight:800; }
-  .small{ font-size:13px; color:#333; }
-  .footer { margin-top:10px; font-size:13px; color:#555; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игра "Четыре стрелки"</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            padding: 30px;
+            margin: 20px 0;
+            max-width: 900px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .table-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+        }
+        
+        .table {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #8B4513, #654321);
+            box-shadow: 
+                0 15px 35px rgba(0,0,0,0.5),
+                inset 0 -5px 15px rgba(0,0,0,0.3);
+            transition: transform 1s cubic-bezier(0.1, 0.8, 0.2, 1); /* Ускоренная анимация */
+            border: 8px solid #5D4037;
+        }
+        
+        .arrow-container {
+            position: absolute;
+            width: 80px;
+            height: 140px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .arrow-stick {
+            width: 16px;
+            background: linear-gradient(to bottom, #7f8c8d, #34495e);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .arrow-stick.up {
+            height: 80px;
+            margin-bottom: -2px;
+        }
+        
+        .arrow-stick.down {
+            height: 80px;
+            margin-top: -2px;
+            transform: rotate(180deg);
+        }
+        
+        .arrow-head {
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .arrow-head.up {
+            border-bottom: 50px solid #e74c3c;
+        }
+        
+        .arrow-head.down {
+            border-top: 50px solid #3498db;
+        }
+        
+        .arrow-0 { top: 40px; left: 160px; }
+        .arrow-1 { top: 160px; right: 40px; transform: rotate(90deg); }
+        .arrow-2 { bottom: 40px; right: 160px; transform: rotate(180deg); }
+        .arrow-3 { bottom: 160px; left: 40px; transform: rotate(270deg); }
+        
+        .napkin {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f5f5dc, #e8e4c9);
+            cursor: pointer;
+            z-index: 2;
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+            border: 2px solid #d4c9a9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #8B4513;
+        }
+        
+        .napkin:hover {
+            transform: scale(1.05);
+        }
+        
+        .napkin.removed {
+            display: none;
+        }
+        
+        .napkin-0 { top: 30px; left: 140px; }
+        .napkin-1 { top: 140px; right: 30px; }
+        .napkin-2 { bottom: 30px; right: 140px; }
+        .napkin-3 { bottom: 140px; left: 30px; }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        button {
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: linear-gradient(135deg, #bdc3c7, #95a5a6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .forward-btn {
+            background: linear-gradient(135deg, #27ae60, #219a52);
+        }
+        
+        .stop-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .finish-btn {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+        
+        .status {
+            text-align: center;
+            font-size: 20px;
+            margin: 20px 0;
+            min-height: 30px;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 25px 0;
+            line-height: 1.6;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .moves-counter {
+            font-weight: bold;
+            color: #f39c12;
+            font-size: 1.2em;
+        }
+        
+        .win-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            font-size: 32px;
+            text-align: center;
+            z-index: 100;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            animation: pulse 1.5s infinite;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .bell {
+            display: none;
+        }
+        
+        .arrow-container.hidden .arrow-stick,
+        .arrow-container.hidden .arrow-head {
+            opacity: 0;
+        }
+        
+        .selected-info {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-<h1>Игра: 4 стакана (готово к встраиванию)</h1>
-<div class="wrap">
-  <div class="game">
-    <div id="board" class="board" aria-live="polite">
-      <div id="table" class="table" role="img" aria-label="крутящийся стол">
-        <!-- corners -->
-        <div id="pos0" class="corner c0" data-index="0" tabindex="0" aria-label="Стакан 1">
-          <div class="cup" id="cup0">U</div>
+    <h1>🎮 Игра "Четыре стрелки" 🎮</h1>
+    
+    <div class="game-container">
+        <div class="instructions">
+            <p><strong>🎯 Правила игры:</strong> Все стрелки скрыты под салфетками. Откройте две стрелки, нажав на салфетки. 
+            Нажмите на открытые стрелки, чтобы перевернуть их (вверх/вниз). Когда будете готовы, нажмите "Дальше" - стрелки скроются, 
+            и стол начнет вращаться как рулетка. Цель - привести все стрелки в одинаковое положение (все вверх или все вниз).</p>
         </div>
-        <div id="pos1" class="corner c1" data-index="1" tabindex="0" aria-label="Стакан 2">
-          <div class="cup" id="cup1">U</div>
+        
+        <div class="status" id="status">🎪 Откройте две стрелки, чтобы начать игру!</div>
+        
+        <div class="table-container">
+            <div class="table" id="table">
+                <!-- Стрелка 0 -->
+                <div class="arrow-container arrow-0 hidden" data-index="0">
+                    <div class="arrow-head up"></div>
+                    <div class="arrow-stick up"></div>
+                </div>
+                
+                <!-- Стрелка 1 -->
+                <div class="arrow-container arrow-1 hidden" data-index="1">
+                    <div class="arrow-head down"></div>
+                    <div class="arrow-stick down"></div>
+                </div>
+                
+                <!-- Стрелка 2 -->
+                <div class="arrow-container arrow-2 hidden" data-index="2">
+                    <div class="arrow-head up"></div>
+                    <div class="arrow-stick up"></div>
+                </div>
+                
+                <!-- Стрелка 3 -->
+                <div class="arrow-container arrow-3 hidden" data-index="3">
+                    <div class="arrow-head down"></div>
+                    <div class="arrow-stick down"></div>
+                </div>
+                
+                <!-- Салфетки -->
+                <div class="napkin napkin-0" data-index="0">🥏</div>
+                <div class="napkin napkin-1" data-index="1">🥏</div>
+                <div class="napkin napkin-2" data-index="2">🥏</div>
+                <div class="napkin napkin-3" data-index="3">🥏</div>
+            </div>
         </div>
-        <div id="pos2" class="corner c2" data-index="2" tabindex="0" aria-label="Стакан 3">
-          <div class="cup" id="cup2">U</div>
+        
+        <div class="selected-info" id="selectedInfo"></div>
+        
+        <div class="controls">
+            <button id="forwardBtn" class="forward-btn" disabled>➡️ Дальше</button>
+            <button id="stopBtn" class="stop-btn">⏹️ Прекратить игру</button>
         </div>
-        <div id="pos3" class="corner c3" data-index="3" tabindex="0" aria-label="Стакан 4">
-          <div class="cup" id="cup3">U</div>
+        
+        <div class="status">
+            📊 Сделано ходов: <span class="moves-counter" id="moves">0</span>
         </div>
-      </div>
-
-      <div id="blindOverlay" class="overlay" style="display:flex; pointer-events:none;">Завязаны глаза — выберите 2 стакана</div>
+        
+        <div class="controls" id="endGameControls" style="display: none;">
+            <button id="finishBtn" class="finish-btn">✅ Закончить</button>
+            <button id="newGameBtn">🔄 Новая игра</button>
+        </div>
     </div>
+    
+    <audio id="bellSound" class="bell" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
 
-    <div class="controls">
-      <button id="restartBtn" class="btn-ghost">Новая игра</button>
-      <button id="showAllBtn">Показать все (открыть)</button>
-      <div style="margin-left:auto" class="muted">Ходов: <span id="moves">0</span></div>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Элементы игры
+            const table = document.getElementById('table');
+            const arrowContainers = document.querySelectorAll('.arrow-container');
+            const napkins = document.querySelectorAll('.napkin');
+            const status = document.getElementById('status');
+            const movesCounter = document.getElementById('moves');
+            const bellSound = document.getElementById('bellSound');
+            const forwardBtn = document.getElementById('forwardBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const finishBtn = document.getElementById('finishBtn');
+            const newGameBtn = document.getElementById('newGameBtn');
+            const endGameControls = document.getElementById('endGameControls');
+            
+            // Состояние игры
+            let selectedArrows = [];
+            let moves = 0;
+            let gameActive = true;
+            let arrowStates = [true, false, true, false]; // true - вверх, false - вниз
+            let isRotating = false;
+            let currentRotation = 0;
 
-    <div class="status" id="status">Выберите два стакана.</div>
-  </div>
-
-  <div class="panel">
-    <div><strong>Правила</strong></div>
-    <div class="muted" style="margin-top:6px;">
-      В каждом ходе вы выбираете ровно два стакана и "чуствуете" их ориентацию. После этого можно перевернуть ни одного, любой или оба из них.
-      Затем столик поворачивается на случайный угол. Цель — сделать все стаканы в одном положении.
-    </div>
-
-    <div class="footer">
-      Подсказка: игра рассчитана под встраивание в Genially как iframe. Если нужно — помогу подготовить хостинг и вставку.
-    </div>
-  </div>
-</div>
-
-<!-- modal for revealing selected pair -->
-<div id="modal" style="display:none;" class="modal" role="dialog" aria-modal="true">
-  <div id="modalTitle" class="small">Вы проверили стаканы</div>
-  <div class="row" id="revealRow">
-    <div style="text-align:center">
-      <div id="revealA" style="width:100px; height:80px; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.12);"></div>
-      <div class="small">Стакан A</div>
-    </div>
-    <div style="text-align:center">
-      <div id="revealB" style="width:100px; height:80px; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.12);"></div>
-      <div class="small">Стакан B</div>
-    </div>
-  </div>
-
-  <div style="display:flex; gap:8px; justify-content:center; margin-top:8px;">
-    <button id="flipNone" class="btn-ghost">Не переворачивать</button>
-    <button id="flipA" class="btn-ghost">Перевернуть A</button>
-    <button id="flipB" class="btn-ghost">Перевернуть B</button>
-    <button id="flipBoth" class="primary">Перевернуть оба</button>
-  </div>
-
-  <div style="text-align:center; margin-top:8px;">
-    <button id="closeModal" class="btn-ghost">Отменить / Закрыть</button>
-  </div>
-</div>
-
-<script>
-/*
-  Простая реализация логики игры.
-  Состояние: массив cups[0..3] = true (up) / false (down)
-  UI:
-    - скрыт режим "blindfold": пользователю видна только информация по выбранным стаканам
-    - после хода столик анимированно вращается на случайный угол
-*/
-
-(function(){
-  const cups = [true,true,true,true]; // true = up, false = down
-  const cupEls = [document.getElementById('cup0'),document.getElementById('cup1'),document.getElementById('cup2'),document.getElementById('cup3')];
-  const posEls = [document.getElementById('pos0'),document.getElementById('pos1'),document.getElementById('pos2'),document.getElementById('pos3')];
-  const table = document.getElementById('table');
-  const overlay = document.getElementById('blindOverlay');
-  const status = document.getElementById('status');
-  const movesEl = document.getElementById('moves');
-  const modal = document.getElementById('modal');
-  const revealA = document.getElementById('revealA');
-  const revealB = document.getElementById('revealB');
-  const showAllBtn = document.getElementById('showAllBtn');
-  const restartBtn = document.getElementById('restartBtn');
-  const closeModal = document.getElementById('closeModal');
-  const flipAbtn = document.getElementById('flipA');
-  const flipBbtn = document.getElementById('flipB');
-  const flipBothBtn = document.getElementById('flipBoth');
-  const flipNoneBtn = document.getElementById('flipNone');
-
-  let selected = []; // выбранные индексы (макс 2)
-  let moves = 0;
-  let blind = true;
-  let rotating = false;
-
-  function randBool(){ return Math.random() < 0.5; }
-
-  function newGame(){
-    for(let i=0;i<4;i++) cups[i] = randBool();
-    moves = 0; movesEl.textContent = moves;
-    selected = [];
-    blind = true;
-    setOverlayVisible(true);
-    updateCups();
-    status.textContent = 'Выберите два стакана.';
-    modal.style.display = 'none';
-    // reset table rotation
-    table.style.transform = 'rotate(0deg)';
-    rotating = false;
-  }
-
-  function updateCups(){
-    // If blind mode, show neutral look for all; reveal selected only in actual reveal phase via modal.
-    for(let i=0;i<4;i++){
-      const up = cups[i];
-      const el = cupEls[i];
-      el.textContent = up ? '↑' : '↓';
-      el.classList.toggle('up', up);
-      el.classList.toggle('down', !up);
-      // keep neutral if blind and not selected
-      if(blind){
-        posEls[i].classList.add('hidden');
-      } else {
-        posEls[i].classList.remove('hidden');
-      }
-      posEls[i].classList.toggle('selected', selected.includes(i));
-      posEls[i].classList.toggle('disabled', rotating);
-    }
-  }
-
-  function setOverlayVisible(v){
-    overlay.style.display = v ? 'flex' : 'none';
-  }
-
-  function playBell(){
-    // Simple bell using WebAudio
-    try{
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(880, ctx.currentTime);
-      g.gain.setValueAtTime(0.0001, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + 0.02);
-      o.connect(g); g.connect(ctx.destination);
-      o.start();
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
-      o.stop(ctx.currentTime + 1.25);
-    }catch(e){
-      console.log('Audio fail', e);
-    }
-  }
-
-  function checkWin(){
-    const same = cups.every(v => v === cups[0]);
-    if(same){
-      playBell();
-      status.innerHTML = '<span class="win">Победа! Все стаканы в одном положении.</span> Ходов: '+moves;
-      setOverlayVisible(false);
-      blind = false;
-      updateCups();
-      return true;
-    }
-    return false;
-  }
-
-  // click handlers for positions
-  posEls.forEach((posEl, idx) => {
-    function trySelect(){
-      if(rotating) return;
-      if(selected.includes(idx)){
-        // deselect
-        selected = selected.filter(x=>x!==idx);
-      } else {
-        if(selected.length >= 2) {
-          // replace oldest? simpler: ignore new until deselect
-          return;
-        }
-        selected.push(idx);
-      }
-      updateCups();
-      if(selected.length === 2){
-        // reveal modal with their states
-        showRevealModal(selected[0], selected[1]);
-      }
-    }
-    posEl.addEventListener('click', trySelect);
-    posEl.addEventListener('keydown', function(e){
-      if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trySelect(); }
-    });
-  });
-
-  function showRevealModal(a,b){
-    // reveal A and B states in modal and present options to flip
-    modal.style.display = 'block';
-    revealA.textContent = cups[a] ? '↑ (вверх)' : '↓ (вниз)';
-    revealB.textContent = cups[b] ? '↑ (вверх)' : '↓ (вниз)';
-    // pause interactions with board
-    setOverlayVisible(false);
-    blind = true; // board remains visually hidden, modal is visible
-    status.textContent = 'Вы проверили два стакана — выберите действие.';
-    updateCups();
-  }
-
-  function closeReveal(){
-    modal.style.display = 'none';
-    setOverlayVisible(true);
-    selected = [];
-    updateCups();
-  }
-
-  flipNoneBtn.addEventListener('click', function(){
-    applyMove(false,false);
-  });
-  flipAbtn.addEventListener('click', function(){
-    applyMove(true,false);
-  });
-  flipBbtn.addEventListener('click', function(){
-    applyMove(false,true);
-  });
-  flipBothBtn.addEventListener('click', function(){
-    applyMove(true,true);
-  });
-  closeModal.addEventListener('click', function(){
-    closeReveal();
-  });
-
-  function applyMove(flipA, flipB){
-    if(selected.length !== 2) return;
-    const [a,b] = selected;
-    if(flipA) cups[a] = !cups[a];
-    if(flipB) cups[b] = !cups[b];
-    moves++; movesEl.textContent = moves;
-    modal.style.display = 'none';
-    // animate rotation
-    rotating = true;
-    setOverlayVisible(false);
-    // update right away (to keep internal states)
-    blind = true; // still blind between moves
-    updateCups();
-    // compute random angle
-    const angle = Math.floor(Math.random()*360);
-    table.style.transition = 'transform 900ms cubic-bezier(.2,.9,.2,1)';
-    table.style.transform = 'rotate('+angle+'deg)';
-    // after animation ends:
-    setTimeout(() => {
-      rotating = false;
-      setOverlayVisible(true);
-      selected = [];
-      // After rotation, keep cups hidden (blind) unless win
-      const won = checkWin();
-      if(!won){
-        status.textContent = 'Выберите два стакана.';
-        blind = true;
-      } else {
-        blind = false;
-      }
-      updateCups();
-    }, 950);
-  }
-
-  // show all (toggle)
-  showAllBtn.addEventListener('click', function(){
-    blind = !blind;
-    setOverlayVisible(blind);
-    showAllBtn.textContent = blind ? 'Показать все (открыть)' : 'Спрятать (завязать)';
-    updateCups();
-  });
-
-  restartBtn.addEventListener('click', function(){
-    newGame();
-  });
-
-  // init
-  newGame();
-
-  // Expose some debug to window
-  window._cupsGame = {
-    state: cups,
-    newGame,
-    applyMove
-  };
-})();
-</script>
+            // Инициализация игры
+            function initGame() {
+                // Случайная начальная конфигурация стрелок
+                arrowStates = Array(4).fill().map(() => Math.random() > 0.5);
+                
+                // Устанавливаем начальное положение стрелок
+                arrowContainers.forEach((container, index) => {
+                    const arrowHead = container.querySelector('.arrow-head');
+                    const arrowStick = container.querySelector('.arrow-stick');
+                    
+                    if (arrowStates[index]) {
+                        arrowHead.className = 'arrow-head up';
+                        arrowStick.className = 'arrow-stick up';
+                    } else {
+                        arrowHead.className = 'arrow-head down';
+                        arrowStick.className = 'arrow-stick down';
+                    }
+                    container.setAttribute('data-index', index);
+                });
+                
+                // Сброс состояния
+                selectedArrows = [];
+                moves = 0;
+                gameActive = true;
+                isRotating = false;
+                currentRotation = 0;
+                movesCounter.textContent = moves;
+                updateStatus();
+                
+                // Сброс салфеток
+                napkins.forEach(napkin => {
+                    napkin.classList.remove('removed');
+                });
+                
+                // Скрываем все стрелки
+                arrowContainers.forEach(container => {
+                    container.classList.add('hidden');
+                });
+                
+                // Сброс кнопок
+                forwardBtn.disabled = true;
+                
+                // Скрыть кнопки завершения игры
+                endGameControls.style.display = 'none';
+                
+                // Показать основные кнопки
+                forwardBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'inline-block';
+                
+                status.textContent = "🎪 Откройте две стрелки, чтобы начать игру!";
+                status.style.color = "white";
+                
+                // Сброс поворота стола
+                table.style.transform = 'rotate(0deg)';
+            }
+            
+            // Обновление статуса игры
+            function updateStatus() {
+                if (selectedArrows.length === 0) {
+                    status.textContent = "🎪 Откройте две стрелки, чтобы начать игру!";
+                } else if (selectedArrows.length === 1) {
+                    status.textContent = "👉 Откройте вторую стрелку";
+                } else {
+                    status.textContent = "🎯 Нажимайте на открытые стрелки, чтобы перевернуть их. Затем нажмите 'Дальше'";
+                }
+            }
+            
+            // Проверка победы
+            function checkWin() {
+                const firstState = arrowStates[0];
+                for (let i = 1; i < arrowStates.length; i++) {
+                    if (arrowStates[i] !== firstState) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            // Открытие стрелки (удаление салфетки)
+            napkins.forEach(napkin => {
+                napkin.addEventListener('click', function() {
+                    if (!gameActive || selectedArrows.length >= 2 || isRotating) return;
+                    
+                    const index = parseInt(this.dataset.index);
+                    
+                    if (!selectedArrows.includes(index)) {
+                        selectedArrows.push(index);
+                        this.classList.add('removed');
+                        
+                        // Показываем стрелку
+                        arrowContainers[index].classList.remove('hidden');
+                        
+                        if (selectedArrows.length === 2) {
+                            // Включаем кнопку "Дальше"
+                            forwardBtn.disabled = false;
+                        }
+                        
+                        updateStatus();
+                    }
+                });
+            });
+            
+            // Переворот стрелки при клике
+            arrowContainers.forEach(container => {
+                container.addEventListener('click', function() {
+                    if (!gameActive || isRotating) return;
+                    
+                    const index = parseInt(this.dataset.index);
+                    
+                    // Переворачиваем только открытые стрелки
+                    if (selectedArrows.includes(index)) {
+                        const arrowHead = this.querySelector('.arrow-head');
+                        const arrowStick = this.querySelector('.arrow-stick');
+                        
+                        if (arrowHead.classList.contains('up')) {
+                            arrowHead.className = 'arrow-head down';
+                            arrowStick.className = 'arrow-stick down';
+                            arrowStates[index] = false;
+                        } else {
+                            arrowHead.className = 'arrow-head up';
+                            arrowStick.className = 'arrow-stick up';
+                            arrowStates[index] = true;
+                        }
+                    }
+                });
+            });
+            
+            // Выполнение хода
+            function performMove() {
+                if (isRotating || selectedArrows.length !== 2) return;
+                
+                isRotating = true;
+                forwardBtn.disabled = true;
+                
+                // Закрываем все стрелки
+                napkins.forEach(napkin => {
+                    napkin.classList.remove('removed');
+                });
+                
+                // Скрываем все стрелки
+                arrowContainers.forEach(container => {
+                    container.classList.add('hidden');
+                });
+                
+                // Увеличиваем счетчик ходов
+                moves++;
+                movesCounter.textContent = moves;
+                
+                // Поворачиваем стол на 900° + случайный угол из набора (0, 90, 180, 270)
+                const angles = [0, 90, 180, 270];
+                const randomAngle = angles[Math.floor(Math.random() * angles.length)];
+                const totalRotation = currentRotation + 900 + randomAngle;
+                currentRotation = totalRotation % 360; // Нормализуем угол
+                
+                table.style.transform = `rotate(${totalRotation}deg)`;
+                
+                status.textContent = "🔄 Стол вращается как рулетка!";
+                
+                // После завершения вращения
+                setTimeout(() => {
+                    isRotating = false;
+                    
+                    if (!gameActive) return;
+                    
+                    // Проверяем победу после вращения
+                    if (checkWin()) {
+                        endGame("🎉 Поздравляем! Вы выиграли! 🎉", "#27ae60");
+                        bellSound.play();
+                        return;
+                    }
+                    
+                    // Сбрасываем выбор
+                    selectedArrows = [];
+                    forwardBtn.disabled = true;
+                    
+                    updateStatus();
+                    
+                    status.textContent = "🎪 Откройте две стрелки, чтобы продолжить игру!";
+                }, 1000); // Уменьшено время ожидания
+            }
+            
+            // Обработчик кнопки "Дальше"
+            forwardBtn.addEventListener('click', performMove);
+            
+            // Обработчик кнопки "Прекратить игру"
+            stopBtn.addEventListener('click', function() {
+                if (isRotating) return;
+                endGame("⏹️ Игра прекращена", "#e74c3c");
+            });
+            
+            // Завершение игры
+            function endGame(message, color) {
+                gameActive = false;
+                isRotating = false;
+                
+                // Показываем все стрелки
+                napkins.forEach(napkin => {
+                    napkin.classList.add('removed');
+                });
+                
+                arrowContainers.forEach(container => {
+                    container.classList.remove('hidden');
+                });
+                
+                // Показываем сообщение
+                status.textContent = message;
+                status.style.color = color;
+                
+                // Скрываем основные кнопки, показываем кнопки завершения
+                forwardBtn.style.display = 'none';
+                stopBtn.style.display = 'none';
+                endGameControls.style.display = 'flex';
+            }
+            
+            // Обработчик кнопки "Закончить"
+            finishBtn.addEventListener('click', function() {
+                alert("🎮 Спасибо за игру! До новых встреч!");
+            });
+            
+            // Обработчик кнопки "Новая игра"
+            newGameBtn.addEventListener('click', initGame);
+            
+            // Начало игры
+            initGame();
+        });
+    </script>
 </body>
 </html>
