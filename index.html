@@ -2,19 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Игра "Четыре стрелки"</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Игра "Четыре круга"</title>
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
             color: white;
             margin: 0;
             min-height: 100vh;
+            touch-action: manipulation;
         }
         
         h1 {
@@ -22,6 +32,7 @@
             margin-bottom: 10px;
             text-align: center;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: clamp(18px, 5vw, 28px);
         }
         
         .game-container {
@@ -29,9 +40,9 @@
             backdrop-filter: blur(10px);
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            padding: 30px;
-            margin: 20px 0;
-            max-width: 900px;
+            padding: 20px;
+            margin: 10px 0;
+            max-width: 95vw;
             width: 100%;
             box-sizing: border-box;
             border: 1px solid rgba(255,255,255,0.2);
@@ -42,75 +53,56 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            margin: 40px 0;
+            margin: 20px 0;
         }
         
         .table {
             position: relative;
-            width: 400px;
-            height: 400px;
+            width: min(85vw, 350px);
+            height: min(85vw, 350px);
             border-radius: 50%;
             background: linear-gradient(145deg, #8B4513, #654321);
             box-shadow: 
                 0 15px 35px rgba(0,0,0,0.5),
                 inset 0 -5px 15px rgba(0,0,0,0.3);
-            transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
             border: 8px solid #5D4037;
         }
         
-        .arrow-container {
+        .circle {
             position: absolute;
-            width: 80px;
-            height: 140px;
+            width: min(20vw, 80px);
+            height: min(20vw, 80px);
+            border-radius: 50%;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .arrow-stick {
-            width: 16px;
-            background: linear-gradient(to bottom, #7f8c8d, #34495e);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .arrow-stick.up {
-            height: 80px;
-            margin-bottom: -2px;
-        }
-        
-        .arrow-stick.down {
-            height: 80px;
-            margin-top: -2px;
-            transform: rotate(180deg);
-        }
-        
-        .arrow-head {
-            width: 0;
-            height: 0;
-            border-left: 30px solid transparent;
-            border-right: 30px solid transparent;
+            touch-action: manipulation;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             transition: all 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.5);
         }
         
-        .arrow-head.up {
-            border-bottom: 50px solid #e74c3c;
+        .circle.red {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
         }
         
-        .arrow-head.down {
-            border-top: 50px solid #3498db;
+        .circle.blue {
+            background: linear-gradient(135deg, #3498db, #2980b9);
         }
         
-        .arrow-0 { top: 40px; left: 160px; }
-        .arrow-1 { top: 160px; right: 40px; transform: rotate(90deg); }
-        .arrow-2 { bottom: 40px; right: 160px; transform: rotate(180deg); }
-        .arrow-3 { bottom: 160px; left: 40px; transform: rotate(270deg); }
+        .circle-0 { top: 8%; left: 8%; }
+        .circle-1 { top: 8%; right: 8%; }
+        .circle-2 { bottom: 8%; right: 8%; }
+        .circle-3 { bottom: 8%; left: 8%; }
+        
+        .circle.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
         
         .napkin {
             position: absolute;
-            width: 120px;
-            height: 120px;
+            width: min(25vw, 100px);
+            height: min(25vw, 100px);
             border-radius: 50%;
             background: linear-gradient(45deg, #f5f5dc, #e8e4c9);
             cursor: pointer;
@@ -123,34 +115,35 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: min(6vw, 24px);
             color: #8B4513;
+            touch-action: manipulation;
         }
         
-        .napkin:hover {
-            transform: scale(1.05);
+        .napkin:active {
+            transform: scale(0.95);
         }
         
         .napkin.removed {
             display: none;
         }
         
-        .napkin-0 { top: 30px; left: 140px; }
-        .napkin-1 { top: 140px; right: 30px; }
-        .napkin-2 { bottom: 30px; right: 140px; }
-        .napkin-3 { bottom: 140px; left: 30px; }
+        .napkin-0 { top: 5%; left: 5%; }
+        .napkin-1 { top: 5%; right: 5%; }
+        .napkin-2 { bottom: 5%; right: 5%; }
+        .napkin-3 { bottom: 5%; left: 5%; }
         
         .controls {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 15px;
-            margin: 25px 0;
+            gap: 10px;
+            margin: 20px 0;
         }
         
         button {
-            padding: 14px 28px;
-            font-size: 16px;
+            padding: min(4vw, 16px) min(8vw, 32px);
+            font-size: min(4vw, 16px);
             font-weight: 600;
             border: none;
             border-radius: 12px;
@@ -159,15 +152,12 @@
             color: white;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            touch-action: manipulation;
+            min-height: 44px;
         }
         
         button:active {
-            transform: translateY(0);
+            transform: scale(0.95);
         }
         
         button:disabled {
@@ -191,20 +181,22 @@
         
         .status {
             text-align: center;
-            font-size: 20px;
-            margin: 20px 0;
-            min-height: 30px;
+            font-size: min(4.5vw, 18px);
+            margin: 15px 0;
+            min-height: 25px;
             font-weight: 500;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            padding: 0 10px;
         }
         
         .instructions {
             background: rgba(255, 255, 255, 0.15);
-            padding: 20px;
+            padding: 15px;
             border-radius: 15px;
-            margin: 25px 0;
-            line-height: 1.6;
+            margin: 20px 0;
+            line-height: 1.5;
             border: 1px solid rgba(255,255,255,0.2);
+            font-size: min(4vw, 14px);
         }
         
         .moves-counter {
@@ -220,14 +212,15 @@
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #27ae60, #219a52);
             color: white;
-            padding: 40px 60px;
+            padding: 30px 40px;
             border-radius: 20px;
-            font-size: 32px;
+            font-size: min(6vw, 24px);
             text-align: center;
             z-index: 100;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             animation: pulse 1.5s infinite;
             border: 3px solid rgba(255,255,255,0.3);
+            max-width: 90vw;
         }
         
         @keyframes pulse {
@@ -240,53 +233,34 @@
             display: none;
         }
         
-        .arrow-container.hidden .arrow-stick,
-        .arrow-container.hidden .arrow-head {
-            opacity: 0;
-        }
-        
         .selected-info {
             display: none;
         }
     </style>
 </head>
 <body>
-    <h1>🎮 Игра "Четыре стрелки" 🎮</h1>
+    <h1>🎮 Игра "Четыре круга" 🎮</h1>
     
     <div class="game-container">
         <div class="instructions">
-            <p><strong>🎯 Правила игры:</strong> Все стрелки скрыты под салфетками. Откройте две стрелки, нажав на салфетки. 
-            Нажмите на открытые стрелки, чтобы перевернуть их (вверх/вниз). Когда будете готовы, нажмите "Дальше" - стрелки скроются, 
-            и стол начнет вращаться как рулетка. Цель - привести все стрелки в одинаковое положение (все вверх или все вниз).</p>
+            <p><strong>🎯 Правила:</strong> Откройте два круга под салфетками. Нажмите на круги чтобы поменять их цвет. Нажмите "Дальше" - стол повернётся. Цель: все круги одного цвета.</p>
         </div>
         
-        <div class="status" id="status">🎪 Откройте две стрелки, чтобы начать игру!</div>
+        <div class="status" id="status">🎪 Откройте два круга!</div>
         
         <div class="table-container">
             <div class="table" id="table">
-                <!-- Стрелка 0 -->
-                <div class="arrow-container arrow-0 hidden" data-index="0">
-                    <div class="arrow-head up"></div>
-                    <div class="arrow-stick up"></div>
-                </div>
+                <!-- Круг 0 -->
+                <div class="circle circle-0 red hidden" data-index="0"></div>
                 
-                <!-- Стрелка 1 -->
-                <div class="arrow-container arrow-1 hidden" data-index="1">
-                    <div class="arrow-head down"></div>
-                    <div class="arrow-stick down"></div>
-                </div>
+                <!-- Круг 1 -->
+                <div class="circle circle-1 blue hidden" data-index="1"></div>
                 
-                <!-- Стрелка 2 -->
-                <div class="arrow-container arrow-2 hidden" data-index="2">
-                    <div class="arrow-head up"></div>
-                    <div class="arrow-stick up"></div>
-                </div>
+                <!-- Круг 2 -->
+                <div class="circle circle-2 red hidden" data-index="2"></div>
                 
-                <!-- Стрелка 3 -->
-                <div class="arrow-container arrow-3 hidden" data-index="3">
-                    <div class="arrow-head down"></div>
-                    <div class="arrow-stick down"></div>
-                </div>
+                <!-- Круг 3 -->
+                <div class="circle circle-3 blue hidden" data-index="3"></div>
                 
                 <!-- Салфетки -->
                 <div class="napkin napkin-0" data-index="0">🥏</div>
@@ -296,19 +270,17 @@
             </div>
         </div>
         
-        <div class="selected-info" id="selectedInfo"></div>
-        
         <div class="controls">
             <button id="forwardBtn" class="forward-btn" disabled>➡️ Дальше</button>
-            <button id="stopBtn" class="stop-btn">⏹️ Прекратить игру</button>
+            <button id="stopBtn" class="stop-btn">⏹️ Стоп</button>
         </div>
         
         <div class="status">
-            📊 Сделано ходов: <span class="moves-counter" id="moves">0</span>
+            📊 Ходов: <span class="moves-counter" id="moves">0</span>
         </div>
         
         <div class="controls" id="endGameControls" style="display: none;">
-            <button id="finishBtn" class="finish-btn">✅ Закончить</button>
+            <button id="finishBtn" class="finish-btn">✅ Выйти</button>
             <button id="newGameBtn">🔄 Новая игра</button>
         </div>
     </div>
@@ -319,7 +291,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Элементы игры
             const table = document.getElementById('table');
-            const arrowContainers = document.querySelectorAll('.arrow-container');
+            const circles = document.querySelectorAll('.circle');
             const napkins = document.querySelectorAll('.napkin');
             const status = document.getElementById('status');
             const movesCounter = document.getElementById('moves');
@@ -331,34 +303,29 @@
             const endGameControls = document.getElementById('endGameControls');
             
             // Состояние игры
-            let selectedArrows = [];
+            let selectedCircles = [];
             let moves = 0;
             let gameActive = true;
-            let arrowStates = [true, false, true, false]; // true - вверх, false - вниз
+            let circleStates = [true, false, true, false]; // true - красный, false - синий
             let isRotating = false;
 
             // Инициализация игры
             function initGame() {
-                // Случайная начальная конфигурация стрелок
-                arrowStates = Array(4).fill().map(() => Math.random() > 0.5);
+                // Случайная начальная конфигурация кругов
+                circleStates = Array(4).fill().map(() => Math.random() > 0.5);
                 
-                // Устанавливаем начальное положение стрелок
-                arrowContainers.forEach((container, index) => {
-                    const arrowHead = container.querySelector('.arrow-head');
-                    const arrowStick = container.querySelector('.arrow-stick');
-                    
-                    if (arrowStates[index]) {
-                        arrowHead.className = 'arrow-head up';
-                        arrowStick.className = 'arrow-stick up';
+                // Устанавливаем начальные цвета кругов
+                circles.forEach((circle, index) => {
+                    if (circleStates[index]) {
+                        circle.className = `circle circle-${index} red hidden`;
                     } else {
-                        arrowHead.className = 'arrow-head down';
-                        arrowStick.className = 'arrow-stick down';
+                        circle.className = `circle circle-${index} blue hidden`;
                     }
-                    container.setAttribute('data-index', index);
+                    circle.setAttribute('data-index', index);
                 });
                 
                 // Сброс состояния
-                selectedArrows = [];
+                selectedCircles = [];
                 moves = 0;
                 gameActive = true;
                 isRotating = false;
@@ -370,9 +337,9 @@
                     napkin.classList.remove('removed');
                 });
                 
-                // Скрываем все стрелки
-                arrowContainers.forEach(container => {
-                    container.classList.add('hidden');
+                // Скрываем все круги
+                circles.forEach(circle => {
+                    circle.classList.add('hidden');
                 });
                 
                 // Сброс кнопок
@@ -385,7 +352,7 @@
                 forwardBtn.style.display = 'inline-block';
                 stopBtn.style.display = 'inline-block';
                 
-                status.textContent = "🎪 Откройте две стрелки, чтобы начать игру!";
+                status.textContent = "🎪 Откройте два круга!";
                 status.style.color = "white";
                 
                 // Сброс поворота стола
@@ -394,114 +361,106 @@
             
             // Обновление статуса игры
             function updateStatus() {
-                if (selectedArrows.length === 0) {
-                    status.textContent = "🎪 Откройте две стрелки, чтобы начать игру!";
-                } else if (selectedArrows.length === 1) {
-                    status.textContent = "👉 Откройте вторую стрелку";
+                if (selectedCircles.length === 0) {
+                    status.textContent = "🎪 Откройте два круга!";
+                } else if (selectedCircles.length === 1) {
+                    status.textContent = "👉 Откройте второй круг";
                 } else {
-                    status.textContent = "🎯 Нажимайте на открытые стрелки, чтобы перевернуть их. Затем нажмите 'Дальше'";
+                    status.textContent = "🎯 Нажимайте на круги чтобы поменять цвет. Затем 'Дальше'";
                 }
             }
             
             // Проверка победы
             function checkWin() {
-                const firstState = arrowStates[0];
-                for (let i = 1; i < arrowStates.length; i++) {
-                    if (arrowStates[i] !== firstState) {
+                const firstState = circleStates[0];
+                for (let i = 1; i < circleStates.length; i++) {
+                    if (circleStates[i] !== firstState) {
                         return false;
                     }
                 }
                 return true;
             }
             
-            // Открытие стрелки (удаление салфетки)
+            // Обработчик для салфеток (тач и клик)
             napkins.forEach(napkin => {
-                napkin.addEventListener('click', function() {
-                    if (!gameActive || selectedArrows.length >= 2 || isRotating) return;
+                const handleNapkinClick = function() {
+                    if (!gameActive || selectedCircles.length >= 2 || isRotating) return;
                     
                     const index = parseInt(this.dataset.index);
                     
-                    if (!selectedArrows.includes(index)) {
-                        selectedArrows.push(index);
+                    if (!selectedCircles.includes(index)) {
+                        selectedCircles.push(index);
                         this.classList.add('removed');
                         
-                        // Показываем стрелку
-                        arrowContainers[index].classList.remove('hidden');
+                        // Показываем круг
+                        circles[index].classList.remove('hidden');
                         
-                        if (selectedArrows.length === 2) {
-                            // Включаем кнопку "Дальше"
+                        if (selectedCircles.length === 2) {
                             forwardBtn.disabled = false;
                         }
                         
                         updateStatus();
                     }
-                });
+                };
+                
+                napkin.addEventListener('click', handleNapkinClick);
+                napkin.addEventListener('touchstart', handleNapkinClick);
             });
             
-            // Переворот стрелки при клике
-            arrowContainers.forEach(container => {
-                container.addEventListener('click', function() {
+            // Обработчик для кругов (тач и клик)
+            circles.forEach(circle => {
+                const handleCircleClick = function() {
                     if (!gameActive || isRotating) return;
                     
                     const index = parseInt(this.dataset.index);
                     
-                    // Переворачиваем только открытые стрелки
-                    if (selectedArrows.includes(index)) {
-                        const arrowHead = this.querySelector('.arrow-head');
-                        const arrowStick = this.querySelector('.arrow-stick');
-                        
-                        if (arrowHead.classList.contains('up')) {
-                            arrowHead.className = 'arrow-head down';
-                            arrowStick.className = 'arrow-stick down';
-                            arrowStates[index] = false;
+                    // Меняем цвет только открытых кругов
+                    if (selectedCircles.includes(index)) {
+                        if (this.classList.contains('red')) {
+                            this.className = `circle circle-${index} blue`;
+                            circleStates[index] = false;
                         } else {
-                            arrowHead.className = 'arrow-head up';
-                            arrowStick.className = 'arrow-stick up';
-                            arrowStates[index] = true;
+                            this.className = `circle circle-${index} red`;
+                            circleStates[index] = true;
                         }
                     }
-                });
+                };
+                
+                circle.addEventListener('click', handleCircleClick);
+                circle.addEventListener('touchstart', handleCircleClick);
             });
             
             // Выполнение хода
             function performMove() {
-                if (isRotating || selectedArrows.length !== 2) return;
+                if (isRotating || selectedCircles.length !== 2) return;
                 
                 isRotating = true;
                 forwardBtn.disabled = true;
                 
-                // Закрываем все стрелки
+                // Закрываем все круги
                 napkins.forEach(napkin => {
                     napkin.classList.remove('removed');
                 });
                 
-                // Скрываем все стрелки
-                arrowContainers.forEach(container => {
-                    container.classList.add('hidden');
+                // Скрываем все круги
+                circles.forEach(circle => {
+                    circle.classList.add('hidden');
                 });
                 
                 // Увеличиваем счетчик ходов
                 moves++;
                 movesCounter.textContent = moves;
                 
-                // Проверяем победу
-                if (checkWin()) {
-                    setTimeout(() => {
-                        endGame("🎉 Поздравляем! Вы выиграли! 🎉", "#27ae60");
-                        bellSound.play();
-                    }, 2100);
-                }
-                
-                // Поворачиваем стол на 900° + случайный угол из набора (0, 90, 180, 270)
+                // Поворачиваем стол на 900° + случайный угол
                 const angles = [0, 90, 180, 270];
                 const randomAngle = angles[Math.floor(Math.random() * angles.length)];
                 const totalRotation = 900 + randomAngle;
                 
-                console.log(`Поворот стола на: ${totalRotation}° (900° + ${randomAngle}°)`);
-                
+                // Принудительно запускаем анимацию вращения
+                table.style.transition = 'transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
                 table.style.transform = `rotate(${totalRotation}deg)`;
                 
-                status.textContent = "🔄 Стол вращается как рулетка!";
+                status.textContent = "🔄 Стол вращается!";
                 
                 // После завершения вращения
                 setTimeout(() => {
@@ -509,56 +468,69 @@
                     
                     if (!gameActive) return;
                     
+                    // Проверяем победу
+                    if (checkWin()) {
+                        endGame("🎉 Поздравляем! Вы выиграли! 🎉", "#27ae60");
+                        bellSound.play();
+                        return;
+                    }
+                    
                     // Сбрасываем выбор
-                    selectedArrows = [];
+                    selectedCircles = [];
                     forwardBtn.disabled = true;
                     
                     updateStatus();
-                    
-                    status.textContent = "🎪 Откройте две стрелки, чтобы продолжить игру!";
-                }, 2100);
+                    status.textContent = "🎪 Откройте два круга!";
+                }, 900);
             }
             
-            // Обработчик кнопки "Дальше"
-            forwardBtn.addEventListener('click', performMove);
+            // Обработчики для кнопки "Дальше"
+            const handleForwardClick = function(e) {
+                e.preventDefault();
+                performMove();
+            };
             
-            // Обработчик кнопки "Прекратить игру"
-            stopBtn.addEventListener('click', function() {
+            forwardBtn.addEventListener('click', handleForwardClick);
+            forwardBtn.addEventListener('touchstart', handleForwardClick);
+            
+            // Обработчики для кнопки "Стоп"
+            const handleStopClick = function(e) {
+                e.preventDefault();
                 if (isRotating) return;
                 endGame("⏹️ Игра прекращена", "#e74c3c");
+            };
+            
+            stopBtn.addEventListener('click', handleStopClick);
+            stopBtn.addEventListener('touchstart', handleStopClick);
+            
+            // Обработчики для кнопок завершения
+            finishBtn.addEventListener('click', function() {
+                alert("🎮 Спасибо за игру!");
             });
+            
+            newGameBtn.addEventListener('click', initGame);
             
             // Завершение игры
             function endGame(message, color) {
                 gameActive = false;
                 isRotating = false;
                 
-                // Показываем все стрелки
+                // Показываем все круги
                 napkins.forEach(napkin => {
                     napkin.classList.add('removed');
                 });
                 
-                arrowContainers.forEach(container => {
-                    container.classList.remove('hidden');
+                circles.forEach(circle => {
+                    circle.classList.remove('hidden');
                 });
                 
-                // Показываем сообщение
                 status.textContent = message;
                 status.style.color = color;
                 
-                // Скрываем основные кнопки, показываем кнопки завершения
                 forwardBtn.style.display = 'none';
                 stopBtn.style.display = 'none';
                 endGameControls.style.display = 'flex';
             }
-            
-            // Обработчик кнопки "Закончить"
-            finishBtn.addEventListener('click', function() {
-                alert("🎮 Спасибо за игру! До новых встреч!");
-            });
-            
-            // Обработчик кнопки "Новая игра"
-            newGameBtn.addEventListener('click', initGame);
             
             // Начало игры
             initGame();
