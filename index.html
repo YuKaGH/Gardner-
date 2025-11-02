@@ -21,6 +21,7 @@
             align-items: center;
             padding: 10px;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .container {
@@ -110,9 +111,11 @@
         
         .coin-container {
             position: absolute;
-            width: min(14vw, 65px);
-            height: min(14vw, 65px);
+            width: min(16vw, 70px);
+            height: min(16vw, 70px);
             transform: translate(-50%, -50%);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .coin {
@@ -125,6 +128,8 @@
             border: 3px solid #FFD700;
             background-size: cover;
             background-position: center;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         
         .coin.face {
@@ -147,10 +152,10 @@
         
         .napkin {
             position: absolute;
-            width: min(18vw, 80px);
-            height: min(18vw, 80px);
+            width: min(20vw, 85px);
+            height: min(20vw, 85px);
             background-color: #FFA500;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -165,17 +170,19 @@
             touch-action: manipulation;
             transform: translate(-50%, -50%);
             border: 3px solid rgba(255, 255, 255, 0.6);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         
         .napkin::before {
             content: '';
             position: absolute;
-            top: 5px;
-            left: 5px;
-            right: 5px;
-            bottom: 5px;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
             border: 2px solid rgba(255, 255, 255, 0.4);
-            border-radius: 6px;
+            border-radius: 8px;
             pointer-events: none;
         }
         
@@ -205,28 +212,37 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-top: 15px;
+            margin-top: 20px;
             flex-wrap: wrap;
+            padding: 0 10px;
         }
         
         button {
-            padding: 12px 20px;
-            font-size: 1rem;
+            padding: 16px 24px;
+            font-size: 1.1rem;
             background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            min-width: 120px;
+            min-width: 140px;
+            min-height: 54px;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            font-weight: 600;
         }
         
         button:hover, button:active {
             background-color: #45a049;
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0px);
         }
         
         button:disabled {
@@ -286,6 +302,11 @@
             margin-bottom: 20px;
         }
         
+        .message button {
+            background-color: #4CAF50;
+            min-width: 160px;
+        }
+        
         .instructions {
             background-color: rgba(255, 255, 255, 0.2);
             border-radius: 10px;
@@ -331,6 +352,30 @@
             min-height: 20px;
         }
         
+        /* Улучшения для iPad */
+        @media (max-width: 1024px) and (hover: none) {
+            .napkin {
+                width: min(22vw, 90px);
+                height: min(22vw, 90px);
+            }
+            
+            .coin-container {
+                width: min(18vw, 75px);
+                height: min(18vw, 75px);
+            }
+            
+            button {
+                padding: 18px 28px;
+                min-width: 150px;
+                min-height: 60px;
+                font-size: 1.2rem;
+            }
+            
+            .controls {
+                gap: 20px;
+            }
+        }
+        
         @media (max-width: 480px) {
             .game-board {
                 width: min(95vw, 350px);
@@ -338,13 +383,24 @@
             }
             
             button {
-                padding: 10px 15px;
-                min-width: 100px;
-                font-size: 0.9rem;
+                padding: 14px 20px;
+                min-width: 120px;
+                min-height: 50px;
+                font-size: 1rem;
             }
             
             .controls {
-                gap: 10px;
+                gap: 12px;
+            }
+            
+            .napkin {
+                width: min(24vw, 80px);
+                height: min(24vw, 80px);
+            }
+            
+            .coin-container {
+                width: min(20vw, 70px);
+                height: min(20vw, 70px);
             }
         }
     </style>
@@ -486,8 +542,9 @@
                     coin.classList.add(randomSide);
                     coin.dataset.index = i;
                     
+                    // Улучшенные обработчики для touch устройств
                     coin.addEventListener('click', handleCoinClick);
-                    coin.addEventListener('touchstart', handleCoinClick, { passive: true });
+                    coin.addEventListener('touchend', handleCoinClick, { passive: true });
                     
                     coinContainer.appendChild(coin);
                     hexagonContainer.appendChild(coinContainer);
@@ -501,8 +558,9 @@
                     napkin.style.top = `calc(50% + ${y}%)`;
                     napkin.dataset.index = i;
                     
+                    // Улучшенные обработчики для touch устройств
                     napkin.addEventListener('click', handleNapkinClick);
-                    napkin.addEventListener('touchstart', handleNapkinClick, { passive: true });
+                    napkin.addEventListener('touchend', handleNapkinClick, { passive: true });
                     
                     hexagonContainer.appendChild(napkin);
                     
@@ -525,9 +583,10 @@
             
             // Обработчик клика по салфетке
             function handleNapkinClick(e) {
+                e.preventDefault();
                 if (gameState.isRotating || !gameState.gameActive || gameState.napkinsRemoved) return;
                 
-                const napkinIndex = parseInt(e.target.dataset.index);
+                const napkinIndex = parseInt(e.currentTarget.dataset.index);
                 const napkin = gameState.napkins[napkinIndex];
                 const coin = gameState.coins[napkinIndex];
                 
@@ -569,9 +628,10 @@
             
             // Обработчик клика по монете
             function handleCoinClick(e) {
+                e.preventDefault();
                 if (gameState.isRotating || !gameState.gameActive || !gameState.napkinsRemoved) return;
                 
-                const coinIndex = parseInt(e.target.dataset.index);
+                const coinIndex = parseInt(e.currentTarget.dataset.index);
                 const coin = gameState.coins[coinIndex];
                 
                 // Проверить, открыта ли монета (снята ли салфетка)
@@ -689,29 +749,25 @@
                 exitMessage.classList.add('show');
             }
             
-            // Обработчики кнопок
-            resetBtn.addEventListener('click', initGame);
-            resetBtn.addEventListener('touchstart', initGame, { passive: true });
+            // Улучшенные обработчики для кнопок
+            function setupButton(button, handler) {
+                button.addEventListener('click', handler);
+                button.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    handler();
+                }, { passive: false });
+            }
             
-            nextBtn.addEventListener('click', function() {
+            // Настройка обработчиков кнопок
+            setupButton(resetBtn, initGame);
+            setupButton(nextBtn, function() {
                 if (gameState.selectedNapkins.length === 3 && !gameState.isRotating) {
                     rotateHexagon();
                 }
             });
-            nextBtn.addEventListener('touchstart', function() {
-                if (gameState.selectedNapkins.length === 3 && !gameState.isRotating) {
-                    rotateHexagon();
-                }
-            }, { passive: true });
-            
-            exitBtn.addEventListener('click', showExitMessage);
-            exitBtn.addEventListener('touchstart', showExitMessage, { passive: true });
-            
-            playAgainBtn.addEventListener('click', initGame);
-            playAgainBtn.addEventListener('touchstart', initGame, { passive: true });
-            
-            restartBtn.addEventListener('click', initGame);
-            restartBtn.addEventListener('touchstart', initGame, { passive: true });
+            setupButton(exitBtn, showExitMessage);
+            setupButton(playAgainBtn, initGame);
+            setupButton(restartBtn, initGame);
             
             // Начать игру
             initGame();
